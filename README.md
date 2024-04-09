@@ -27,6 +27,7 @@ yc = YOLOConverter(img_set=img_set,dataset_names=ds_names, classes=categories, t
 yc.from_csv(train_csv="train.csv", test_csv= "test.csv", dataset_name="animal_set")
 ```
 Submitted categories can be either ``` dict ``` or ``` list ```, in the first case the csv file must contain ```category_id``` of type string (category name).
+Train indexes can be either ``` tuple ``` (range) or ``` list ``` . 
 ## Features
 -  YOLO directories hierarchy
 -  Multiple dataset allowed
