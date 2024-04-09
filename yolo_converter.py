@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 class YOLOConverter:
     def __init__(self, img_set, dataset_names, classes):
-        self.img_set = img_set
         self.dataset_names = dataset_names
         self.category_map = {}
         self.data = {}
@@ -17,8 +16,9 @@ class YOLOConverter:
         if isinstance(img_set, list):
             assert len(img_set) == len(dataset_names) and len(classes) == len(img_set), f"The length of image set, dataset names and classes list must be equal"
         else:
+            img_set = [img_set]
             assert len(dataset_names) == 1 and len(classes) == 1, f"A single image dataset folder has been specified, and multiple dataset names or classes"
-        
+        self.img_set = {name:s for name, s in zip(dataset_names, img_set)}
         self.classes = {name: c for name, c in zip(dataset_names, classes)}
 
     def __make_dir(self, dir):
@@ -40,7 +40,7 @@ class YOLOConverter:
         out = f"path: ../{dataset_path}\ntrain: images/train\nval: images/val\n\nnames:\n"
         _class  = self.classes[name]
         for idx, c in enumerate(_class):
-            cline = f" {idx}: {c}"
+            cline = f"\t{idx}: {c}"
             out += cline + "\n"
         return out
 
@@ -83,9 +83,17 @@ class YOLOConverter:
         else:
             if isinstance(train_idx, tuple):
                 train_idx = [i for i in range(train_idx[0], train_idx[1])]
+
+        img_set = self.img_set[dataset_name]
+
         print("Creating YOLO dataset....")
-        for idx, img_id in enumerate(tqdm(unique_keys)):
-            img_path = os.path.join(self.img_set, img_id + ".tif")
+        all_images = os.listdir(img_set)
+        idx = 0
+        for img_name in tqdm(all_images):
+            img_id = img_name[:-4]
+            if img_id not in unique_keys:
+                continue
+            img_path = os.path.join(img_set, img_name)
             img_shape = cv2.imread(img_path).shape[:2]
             targets = train_df[train_df['image_id'] == img_id]
             if idx in train_idx:
@@ -105,5 +113,5 @@ class YOLOConverter:
                     cat = self.__map_category(dataset_name, cat)
                     line = f"{cat} {center_x} {center_y} {w} {h}\n"
                     out_f.write(line)
-
+            idx += 1
         self.__prepare_yaml()
