@@ -40,7 +40,7 @@ class YOLOConverter:
         out = f"path: ../{dataset_path}\ntrain: images/train\nval: images/val\n\nnames:\n"
         _class  = self.classes[name]
         for idx, c in enumerate(_class):
-            cline = f"\t{idx}: {c}"
+            cline = f" {idx}: {c}"
             out += cline + "\n"
         return out
 
