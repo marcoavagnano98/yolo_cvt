@@ -30,7 +30,7 @@ class YOLOConverter:
         self.node_dir = f"{parent_dir}/datasets"
         self.datasets_path = [os.path.join(self.node_dir, name) for name in self.dataset_names]
         self.data = {name:p for p, name in zip(self.datasets_path, self.dataset_names)}
-        image_subdirs = ["images", "images/labels", "images/labels/train", "images/labels/val", "images/train", "images/val"]
+        image_subdirs = ["images", "labels", "labels/train", "labels/val", "images/train", "images/val"]
         for dataset_path in self.datasets_path:
             ds = [parent_dir, self.node_dir, dataset_path] + [os.path.join(dataset_path, subdir) for subdir in image_subdirs]
             for d in ds:
@@ -75,7 +75,7 @@ class YOLOConverter:
         unique_keys =  train_df["image_id"].unique()
         train_path = f"{dataset_path}/images/train"
         val_path = f"{dataset_path}/images/val"
-        label_path = f"{dataset_path}/images/labels"
+        label_path = f"{dataset_path}/labels"
         
         if not train_idx:
             val_len = len(unique_keys) // 10
