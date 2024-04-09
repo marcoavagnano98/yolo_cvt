@@ -3,11 +3,11 @@ import cv2
 import os
 import shutil
 import ast
+from tqdm import tqdm
 
 class YOLOConverter:
-    def __init__(self, img_set, dataset_names, classes, train_idx = None):
+    def __init__(self, img_set, dataset_names, classes):
         self.img_set = img_set
-        self.indices = train_idx
         self.dataset_names = dataset_names
         self.category_map = {}
         self.data = {}
@@ -67,9 +67,8 @@ class YOLOConverter:
         
         return idx_pos
         
-    def from_csv(self, train_csv, dataset_name, cat_type= "num", test_csv=None):
+    def from_csv(self, train_csv, dataset_name,train_idx=None, test_csv=None):
         self.__prepare_directories()
-        
         
         dataset_path = self.data[dataset_name]
         train_df = pd.read_csv(train_csv).dropna()
@@ -77,19 +76,19 @@ class YOLOConverter:
         train_path = f"{dataset_path}/images/train"
         val_path = f"{dataset_path}/images/val"
         label_path = f"{dataset_path}/images/labels"
-         
         
-        if not self.indices:
+        if not train_idx:
             val_len = len(unique_keys) // 10
-            train_idx = (0, len(unique_keys) - val_len)
+            train_idx = [i for i in range(len(unique_keys) - val_len)]
         else:
-            train_idx = self.indices
-        
-        for idx, img_id in enumerate(unique_keys):
+            if isinstance(train_idx, tuple):
+                train_idx = [i for i in range(train_idx[0], train_idx[1])]
+        print("Creating YOLO dataset....")
+        for idx, img_id in enumerate(tqdm(unique_keys)):
             img_path = os.path.join(self.img_set, img_id + ".tif")
             img_shape = cv2.imread(img_path).shape[:2]
             targets = train_df[train_df['image_id'] == img_id]
-            if idx < train_idx[1] and idx >= train_idx[0]:
+            if idx in train_idx:
                 ann_path = os.path.join(label_path, "train")
                 shutil.copy(img_path, train_path)
             else:
@@ -108,4 +107,3 @@ class YOLOConverter:
                     out_f.write(line)
 
         self.__prepare_yaml()
- 
